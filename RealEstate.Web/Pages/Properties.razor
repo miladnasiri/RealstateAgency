@@ -1,0 +1,128 @@
+@page "/properties"
+@using RealEstate.Application.Services
+@using RealEstate.Domain
+@inject PropertyService PropertyService
+
+<PageTitle>Properties - Real Estate Agency</PageTitle>
+
+<h1>Properties</h1>
+
+<div class="row mb-3">
+    <div class="col">
+        <button class="btn btn-success" @onclick="ShowAddForm">Add New Property</button>
+    </div>
+</div>
+
+@if (showAddForm)
+{
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">Add New Property</h5>
+            <EditForm Model="newProperty" OnValidSubmit="AddProperty">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Title</label>
+                            <InputText class="form-control" @bind-Value="newProperty.Title" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Price</label>
+                            <InputNumber class="form-control" @bind-Value="newProperty.Price" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Type</label>
+                            <InputSelect class="form-control" @bind-Value="newProperty.Type">
+                                <option value="@PropertyType.Apartment">Apartment</option>
+                                <option value="@PropertyType.House">House</option>
+                                <option value="@PropertyType.Villa">Villa</option>
+                            </InputSelect>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <InputSelect class="form-control" @bind-Value="newProperty.Status">
+                                <option value="@PropertyStatus.ForSale">For Sale</option>
+                                <option value="@PropertyStatus.ForRent">For Rent</option>
+                            </InputSelect>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Address</label>
+                            <InputText class="form-control" @bind-Value="newProperty.Address" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Bedrooms</label>
+                            <InputNumber class="form-control" @bind-Value="newProperty.Bedrooms" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Bathrooms</label>
+                            <InputNumber class="form-control" @bind-Value="newProperty.Bathrooms" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Agent Name</label>
+                            <InputText class="form-control" @bind-Value="newProperty.AgentName" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <InputTextArea class="form-control" @bind-Value="newProperty.Description" rows="3" />
+                </div>
+                <button type="submit" class="btn btn-primary">Add Property</button>
+                <button type="button" class="btn btn-secondary ms-2" @onclick="() => showAddForm = false">Cancel</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div class="row">
+    @if (properties != null)
+    {
+        @foreach (var property in properties)
+        {
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">@property.Title</h5>
+                        <p class="card-text">@property.Description</p>
+                        <p><strong>Price:</strong> $@property.Price.ToString("N0")</p>
+                        <p><strong>Type:</strong> @property.Type</p>
+                        <p><strong>Status:</strong> @property.Status</p>
+                        <p><strong>Bedrooms:</strong> @property.Bedrooms | <strong>Bathrooms:</strong> @property.Bathrooms</p>
+                        <p><strong>Address:</strong> @property.Address</p>
+                        <p><strong>Agent:</strong> @property.AgentName</p>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private List<Property>? properties;
+    private Property newProperty = new Property();
+    private bool showAddForm = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProperties();
+    }
+
+    private async Task LoadProperties()
+    {
+        properties = (await PropertyService.GetAllPropertiesAsync()).ToList();
+    }
+
+    private void ShowAddForm()
+    {
+        newProperty = new Property();
+        showAddForm = true;
+    }
+
+    private async Task AddProperty()
+    {
+        await PropertyService.CreatePropertyAsync(newProperty);
+        await LoadProperties();
+        showAddForm = false;
+    }
+}
